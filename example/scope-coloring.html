@@ -1,0 +1,163 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/html">
+  <head>
+    <meta charset="utf-8">
+    <title>JavaScript Scope Context Coloring</title>
+    <meta name="description" content="A JavaScript experiment in switching between syntax highlighting and scope context coloring.">
+    <meta name="author" content="Daniel Lamb">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../CodeMirror/lib/codemirror.css">
+    <link rel="stylesheet" href="../CodeMirror/theme/ambiance.css">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css">
+    <link rel="stylesheet" href="demo.css">
+  </head>
+  <body>
+    <div id="wrap">
+        <div class="container-fluid">
+            <div class="page-header">
+                <h1>JavaScript Scope Context Coloring</h1>
+            </div>
+            <p class="lead">An experiment in switching between <strong>syntax highlighting</strong> and <strong>scope colorizing</strong> built on JSLint and CodeMirror.</p>
+            <span id="fork"><a href="https://github.com/daniellmb/JavaScript-Scope-Context-Coloring">Fork me on GitHub</a></span>
+            <div id="toggleMode" class="btn-group" data-toggle="buttons-radio">
+                <button type="button" data-mode="n00b" class="btn">Syntax Coloring</button>
+                <button type="button" data-mode="pro" class="btn active">Scope Coloring</button>
+            </div>
+            <i class="icon-question-sign" data-toggle="popover" data-trigger="hover" data-placement="top" data-title="Scope Color Legend"></i>
+            <form>
+                <div class="btn-group samples">
+                    <button class="btn dropdown-toggle btn-mini" data-toggle="dropdown">Code Samples<span class="caret"></span></button>
+                    <ul class="dropdown-menu" id="samples">
+                        <li><a href="#depinject">Dep. Inject</a></li>
+                        <li><a href="#fullmonad">Full Monad</a></li>
+                        <li><a href="#level10">10 Levels</a></li>
+                    </ul>
+                </div>
+                <div id="editor"></div>
+            </form>
+            <div id="push"></div>
+        </div>
+    </div>
+    <div id="footer">
+        <div class="container">
+            <p class="muted credit">Experiment by <a href="https://github.com/daniellmb">Daniel Lamb</a>.</p>
+        </div>
+    </div>
+
+    <!-- experiment dependencies -->
+    <script src="../CodeMirror/lib/codemirror.js"></script>
+    <script src="../CodeMirror/mode/javascript/javascript.js"></script>
+    <script src="../JSLint/jslint.js"></script>
+    <!-- experiment -->
+    <script src="../scope.js"></script>
+
+    <!-- demo page specific code (you need stuff below this line) -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="demo.js"></script>
+    <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js"></script>
+    <script>
+    (function ($) {
+        'use strict';
+        //setup scope color legend popover
+        var legendHTML = ['<span class="legend">',
+            '<span class="level0">Level 0</span>',
+            '<span class="level1">Level 1</span>',
+            '<span class="level2">Level 2</span>',
+            '<span class="level3">Level 3</span>',
+            '<span class="level4">Level 4</span>',
+            '<span class="level5">Level 5</span>',
+            '<span class="level6">Level 6</span>',
+            '<span class="level7">Level 7</span>',
+            '<span class="level8">Level 8</span>',
+            '<span class="level9">Level 9</span>',
+            '</span>'];
+        $('i').popover({ html : true, content: legendHTML.join('\n') });
+    }(jQuery));
+    </script>
+
+<!-- scope coloring samples -->
+<script id="depinject" type="text/html">/*
+Dependency injection in a functional style using JavaScript closures.
+Run at http://jsfiddle.net/daniellmb/fkdkJ
+*/
+(function (window) {
+    'use strict';
+
+    var factories, greet;
+
+    function createFactories(display) {
+        return {
+            createGreet: function (salutation) {
+                return function (thing) {
+                    display(salutation + thing + '!');
+                };
+            }
+        };
+    }
+
+    factories = createFactories(window.alert);
+    greet = factories.createGreet('Hello ');
+
+    greet('World');
+
+}(this));</script>
+<script id="fullmonad" type="text/html">function MONAD(modifier) {
+    'use strict';
+
+    var prototype = Object.create(null);
+    prototype.is_monad = true;
+
+    function unit(value) {
+        var monad = Object.create(prototype);
+        monad.bind = function (func, args) {
+            return func.apply(
+                undefined,
+                [value].concat(Array.prototype.slice.apply(args || []))
+            );
+        };
+        if (typeof modifier === 'function') {
+            value = modifier(monad, value);
+        }
+        return monad;
+    }
+    unit.method = function (name, func) {
+        prototype[name] = func;
+        return unit;
+    };
+    unit.lift_value = function (name, func) {
+        prototype[name] = function () {
+            return this.bind(func, arguments);
+        };
+        return unit;
+    };
+    unit.lift = function (name, func) {
+        prototype[name] = function () {
+            var result = this.bind(func, arguments);
+            return result && result.is_monad === true ? result : unit(result);
+        };
+        return unit;
+    };
+    return unit;
+}</script>
+<script id="level10" type="text/html">function Level0() {
+    'use strict';
+    return function Level1() {
+        return function Level2() {
+            return function Level3() {
+                return function Level4() {
+                    return function Level5() {
+                        return function Level6() {
+                            return function Level7() {
+                                return function Level8() {
+                                    console.warn('Seriously, 10 Levels!?');
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+}</script>
+  </body>
+</html>
